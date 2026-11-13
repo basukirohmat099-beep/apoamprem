@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alight Motion Premium Generator</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #161a22;
+    --panel-2: #1e232d;
+    --line: #2a3140;
+    --text: #e6e9ef;
+    --muted: #8b93a3;
+    --accent: #6c8cff;
+    --accent-2: #4a6bff;
+    --ok: #3ddc84;
+    --err: #ff5c5c;
+    --warn: #ffb020;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(1200px 600px at 20% -10%, #1a2030 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 32px 16px;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .sub b { color: var(--text); font-weight: 500; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .panel h2 {
+    font-size: 13px;
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  input[type="email"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .field { margin-bottom: 12px; }
+
+  button {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--accent-2);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+
+  button:hover:not(:disabled) { background: var(--accent); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+
+  button.ghost:hover:not(:disabled) {
+    background: var(--panel-2);
+    border-color: var(--accent);
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .step .num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .step.done .num {
+    background: rgba(61, 220, 132, 0.12);
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+
+  .step.active .num {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .step .label { font-size: 13px; }
+
+  .log {
+    background: #0a0c10;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    max-height: 340px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .log:empty::before {
+    content: "// output akan muncul di sini";
+    color: #4a5261;
+  }
+
+  .log .l-ok    { color: var(--ok); }
+  .log .l-err   { color: var(--err); }
+  .log .l-warn  { color: var(--warn); }
+  .log .l-muted { color: var(--muted); }
+  .log .l-line  { color: var(--text); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge.ok  { background: rgba(61, 220, 132, 0.12); color: var(--ok); }
+  .badge.err { background: rgba(255, 92, 92, 0.12); color: var(--err); }
+  .badge.run { background: rgba(108, 140, 255, 0.12); color: var(--accent); }
+
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Alight Motion Premium Generator</h1>
+    <div class="sub">Admin Utama: <b>Zenn.html</b> &middot; Pencipta: <b>Zenn</b></div>
+  </header>
+
+  <!-- STEP 1 -->
+  <div class="panel">
+    <h2>Step 1 &mdash; Send Magic Link</h2>
+    <div class="step" id="step-1">
+      <div class="num">1</div>
+      <div class="label">Kirim magic link ke email</div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="EMAIL_KAMU" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="btn-send">Kirim Magic Link</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel">
+    <h2>Step 2 &mdash; Verify Account</h2>
+    <div class="step" id="step-2">
+      <div class="num">2</div>
+      <div class="label">Tempel raw magic link dari email</div>
+    </div>
+    <div class="field">
+      <label for="rawlink">Raw Magic Link</label>
+      <input type="text" id="rawlink" placeholder="RAW_MAGIC_LINK_KAMU" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="btn-verify">Verifikasi Akun</button>
+    <div class="hint">Cek inbox &rarr; copy link verifikasi &rarr; tempel di sini.</div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel">
+    <h2>Step 3 &mdash; Apply Premium</h2>
+    <div class="step" id="step-3">
+      <div class="num">3</div>
+      <div class="label">Terapkan premium pakai idToken</div>
+    </div>
+    <div class="field">
+      <label for="idtoken">idToken (auto-isi dari step 2)</label>
+      <input type="text" id="idtoken" placeholder="idToken akan terisi otomatis" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="btn-premium">Apply Premium</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel">
+    <h2>Log</h2>
+    <div class="log" id="log"></div>
+    <div class="row" style="margin-top:12px;">
+      <button class="ghost" id="btn-clear">Clear Log</button>
+      <button class="ghost" id="btn-copy">Copy Log</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const API_URL = 'https://anita-studio.netlify.app/.netlify/functions/amprem';
+
+  const $ = (id) => document.getElementById(id);
+  const elEmail   = $('email');
+  const elRawLink = $('rawlink');
+  const elIdToken = $('idtoken');
+  const elLog     = $('log');
+
+  const btnSend    = $('btn-send');
+  const btnVerify  = $('btn-verify');
+  const btnPremium = $('btn-premium');
+  const btnClear   = $('btn-clear');
+  const btnCopy    = $('btn-copy');
+
+  // ---------- log helpers ----------
+  function log(msg, cls = 'l-line') {
+    const ts = new Date().toLocaleTimeString('id-ID', { hour12: false });
+    const line = document.createElement('div');
+    line.className = cls;
+    line.textContent = `[${ts}] ${msg}`;
+    elLog.appendChild(line);
+    elLog.scrollTop = elLog.scrollHeight;
+  }
+
+  function logJSON(obj) {
+    const line = document.createElement('div');
+    line.className = 'l-muted';
+    line.textContent = JSON.stringify(obj, null, 2);
+    elLog.appendChild(line);
+    elLog.scrollTop = elLog.scrollHeight;
+  }
+
+  function setStep(id, state) {
+    const el = $(id);
+    if (!el) return;
+    el.classList.remove('active', 'done');
+    if (state) el.classList.add(state);
+  }
+
+  // ---------- api ----------
+  async function post(action, data) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...data })
+    });
+
+    let body = null;
+    try { body = await res.json(); }
+    catch (_) { body = { raw: await res.text().catch(() => '') }; }
+
+    if (!res.ok) {
+      const err = new Error(body?.message || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = body;
+      throw err;
+    }
+    return body;
+  }
+
+  // ---------- step 1 ----------
+  btnSend.addEventListener('click', async () => {
+    const email = elEmail.value.trim();
+    if (!email) { log('Email kosong.', 'l-err'); return; }
+
+    btnSend.disabled = true;
+    setStep('step-1', 'active');
+    log(`Kirim magic link → ${email}`, 'l-muted');
+
+    try {
+      const data = await post('send-magiclink', { email });
+      logJSON(data);
+
+      if (!data?.success) {
+        throw new Error(data?.message || 'Gagal mengirim magic link');
+      }
+
+      setStep('step-1', 'done');
+      log('Magic link terkirim.', 'l-ok');
+    } catch (err) {
+      setStep('step-1', null);
+      if (err.status) {
+        log(`Status: ${err.status}`, 'l-err');
+        logJSON(err.data);
+      } else {
+        log(err.message, 'l-err');
+      }
+    } finally {
+      btnSend.disabled = false;
+    }
+  });
+
+  // ---------- step 2 ----------
+  btnVerify.addEventListener('click', async () => {
+    const email   = elEmail.value.trim();
+    const rawLink = elRawLink.value.trim();
+
+    if (!email)   { log('Email kosong.', 'l-err'); return; }
+    if (!rawLink) { log('Raw magic link kosong.', 'l-err'); return; }
+
+    btnVerify.disabled = true;
+    setStep('step-2', 'active');
+    log('Verifikasi akun...', 'l-muted');
+
+    try {
+      const data = await post('verify-account', { email, rawLink });
+      logJSON(data);
+
+      if (!data?.success) {
+        throw new Error(data?.message || 'Verifikasi gagal');
+      }
+
+      const idToken = data.idToken || data.profile?.idToken;
+      if (!idToken) {
+        throw new Error('idToken tidak ditemukan pada response');
+      }
+
+      elIdToken.value = idToken;
+      setStep('step-2', 'done');
+      log('Verifikasi berhasil. idToken terisi otomatis.', 'l-ok');
+    } catch (err) {
+      setStep('step-2', null);
+      if (err.status) {
+        log(`Status: ${err.status}`, 'l-err');
+        logJSON(err.data);
+      } else {
+        log(err.message, 'l-err');
+      }
+    } finally {
+      btnVerify.disabled = false;
+    }
+  });
+
+  // ---------- step 3 ----------
+  btnPremium.addEventListener('click', async () => {
+    const email   = elEmail.value.trim();
+    const idToken = elIdToken.value.trim();
+
+    if (!email)   { log('Email kosong.', 'l-err'); return; }
+    if (!idToken) { log('idToken kosong.', 'l-err'); return; }
+
+    btnPremium.disabled = true;
+    setStep('step-3', 'active');
+    log('Apply premium...', 'l-muted');
+
+    try {
+      const data = await post('apply-premium', { email, idToken });
+      logJSON(data);
+
+      if (!data?.success) {
+        throw new Error(data?.message || 'Proses gagal');
+      }
+
+      setStep('step-3', 'done');
+      log('Premium berhasil diterapkan.', 'l-ok');
+    } catch (err) {
+      setStep('step-3', null);
+      if (err.status) {
+        log(`Status: ${err.status}`, 'l-err');
+        logJSON(err.data);
+      } else {
+        log(err.message, 'l-err');
+      }
+    } finally {
+      btnPremium.disabled = false;
+    }
+  });
+
+  // ---------- log controls ----------
+  btnClear.addEventListener('click', () => { elLog.innerHTML = ''; });
+
+  btnCopy.addEventListener('click', async () => {
+    const text = elLog.innerText || '';
+    if (!text.trim()) { log('Log kosong.', 'l-warn'); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      log('Log di-copy.', 'l-ok');
+    } catch (_) {
+      log('Gagal copy — clipboard diblokir browser.', 'l-err');
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
